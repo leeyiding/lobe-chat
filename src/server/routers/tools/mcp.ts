@@ -39,11 +39,21 @@ export const mcpRouter = router({
     .input(
       z.object({
         identifier: z.string(),
+        metadata: z
+          .object({
+            avatar: z.string().optional(),
+            description: z.string().optional(),
+          })
+          .optional(),
         url: z.string().url(),
       }),
     )
     .query(async ({ input }) => {
-      return await mcpService.getStreamableMcpServerManifest(input.identifier, input.url);
+      return await mcpService.getStreamableMcpServerManifest(
+        input.identifier,
+        input.url,
+        input.metadata,
+      );
     }),
   /* eslint-disable sort-keys-fix/sort-keys-fix */
   // --- MCP Interaction ---
@@ -56,6 +66,28 @@ export const mcpRouter = router({
 
       // Pass the validated MCPClientParams to the service
       return await mcpService.listTools(input);
+    }),
+
+  // listResources now accepts MCPClientParams directly
+  listResources: mcpProcedure
+    .input(mcpClientParamsSchema) // Use the unified schema
+    .query(async ({ input }) => {
+      // Stdio check can be done here or rely on the service/client layer
+      checkStdioEnvironment(input);
+
+      // Pass the validated MCPClientParams to the service
+      return await mcpService.listResources(input);
+    }),
+
+  // listPrompts now accepts MCPClientParams directly
+  listPrompts: mcpProcedure
+    .input(mcpClientParamsSchema) // Use the unified schema
+    .query(async ({ input }) => {
+      // Stdio check can be done here or rely on the service/client layer
+      checkStdioEnvironment(input);
+
+      // Pass the validated MCPClientParams to the service
+      return await mcpService.listPrompts(input);
     }),
 
   // callTool now accepts MCPClientParams, toolName, and args
